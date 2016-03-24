@@ -1,50 +1,35 @@
 详情请参见：http://blog.csdn.net/anydrew/article/details/50969574
 
-
 ## 概述
 
-本文主要讲解如何在 Android 下实现高仿 iOS 的开关按钮，并非是在Android 自带的 ToggleButton上修改，而是使用 API提供的 onDraw、onMeasure、Canvas 方法，纯手工绘制。基本原理就是在 Canvas上叠着放两张图片，上面的图片根据手指触摸情况，不断移动，实现开关效果。
+本文主要讲解如何在 Android 下实现高仿 iOS 的开关按钮，并非是在 Android 自带的 ToggleButton 上修改，而是使用 API 提供的 onDraw、onMeasure、Canvas 方法，纯手工绘制。基本原理就是在 Canvas 上叠着放两张图片，上面的图片根据手指触摸情况，不断移动，实现开关效果。
+
+本文示例代码：https://github.com/heshiweij/EasySwitchButton
 
 效果图：
 
-![这里写图片描述](https://github.com/heshiweij/EasySwitchButton/blob/master/sample.png?raw=true)
-
+![这里写图片描述](http://img.blog.csdn.net/20160324121218248)
 
 
 功能点：
-- 不滑出边界，并超过一半时自动切换（**边界判断**）
-
-- 可滑动，也可点击（**事件共存**）
-
-- 提供状态改变监听（**设置回调**）
-
-- 通过属性设置初始状态、背景图片、滑动按钮（**自定义属性**）
+1. 不滑出边界，超过一半自动切换（**边界判断**）
+2. 可滑动，也可点击（**事件共存**）
+3. 提供状态改变监听（**设置回调**）
+3. 通过属性设置初始状态、背景图片、滑动按钮（**自定义属性**）
 
 ## 自定义View的概述
-Android 在绘制 View 时，其实就像蒙上眼睛在画板上画画，它并不知道应该把 View **画多大**，**画哪儿**，**怎么画**。所以我们必须实现View 的三个重要方法，以告诉它这些信息。即：**onMeasure**（画多大）,**onLayout**（画哪儿）,**onDraw**（怎么画）。
+Android 在绘制 View 时，其实就像蒙上眼睛在画板上画画，它并不知道应该把 View **画多大**，**画哪儿**，**怎么画**。所以我们必须实现 View 的三个重要方法，以告诉它这些信息。即：**onMeasure**（画多大）,**onLayout**（画哪儿）,**onDraw**（怎么画）。
 
 ### View的生命周期
 
-onFinishedInflate()
+| 未设置点击事件  |  是否监听 ACTION_MOVE | 
+| ------------- | ------------- |
+|`onFinishedInflate()` |当从布局文件创建时调用，做一些初始化的操作，如创建对象等|  
+|`onSizeChanged()`| 当尺寸改变时调用,做一些进一步的初始化，如：处理外部通过 set 设置的属性    |
+| `onMeasure()`| 当需要测量时调用，指定 View 的大小 |
+| `onLayout()`| 当需要布局时调用，指定 View 的位置 |
+| `onDraw()`| 当需要绘制时调用，指定 View 的内容 |	
 	
-	当从布局文件创建时调用，做一些初始化的操作，如创建对象等
-	
-onSizeChanged()
-
-	当尺寸改变时调用,做一些进一步的初始化，如：处理外部通过set设置的属性
-	
-onMeasure()
-
-	当需要测量时调用，指定 View 的大小
-
-onLayout()
-
-	当需要布局时调用，指定 View 的位置
-
-onDraw()
-
-	当需要绘制时调用，指定 View 的内容
-
 
 在动手写之前，必须先了解以下几个概念:
 
@@ -125,7 +110,7 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 }
 ```
 
-测量完成后，需要实现 onDraw ，在 View 提供的 Canvas 画板绘制两个图片。 其中 mCurrLeft 是关键，滑动的原理就是不断改变 mCurrLeft 的值，调用 invalidate() 引起重绘，不断重新执行 onDraw，从而发生位移的改变。
+测量完成后，需要实现 onDraw ，在 View 提供的 Canvas 画板绘制两个图片。 其中 `mCurrLeft` 是关键，滑动的原理就是不断改变 `mCurrLeft` 的值，调用 `invalidate()` 引起重绘，不断重新执行 onDraw，从而发生位移的改变。
 
 ```
 @Override
@@ -177,19 +162,22 @@ public boolean onTouchEvent(MotionEvent event) {
 
 **关于 onTouchEvent 的返回值**
 
-我们发现，当给 onTouchEvent 的返回值设为 false，就不能监听 ACTION_MOVE 了。这牵扯到 **View 的事件分发机制**，关于这个内容，我稍后会写一篇文章，详细阐述我的理解。
+我们发现，当给 onTouchEvent 的返回值设为 false，就不能监听 `ACTION_MOVE` 了。这牵扯到 **View 的事件分发机制**，关于这个内容，我稍后会写一篇文章，详细阐述我的理解。
 
 目前，暂时只需要记住下面这个规则：
 
-| 设置点击事件  |  是否监听 ACTION_MOVE ||
+| 设置点击事件  |  是否监听 ACTION_MOVE |是否响应点击事件|
 | ------------- | ------------- |------------- |
 | return true | YES  | NO |
 | return false| NO   | NO  |
 | return super.onTouchEvent| YES    | YES   |
-| **未设置点击事件**  |   |  |
-| return true |YES    |  |
-| return false| NO    |  |
-| return super.onTouchEvent| NO    | |
+
+
+| 未设置点击事件  |  是否监听 ACTION_MOVE | 是否响应点击事件 |
+| ------------- | ------------- |------------- |
+| return true |YES    |  不需要|
+| return false| NO    |  不需要|
+| return super.onTouchEvent| NO    | 不需要|
 
 ### 处理状态改变回调
 
@@ -221,9 +209,9 @@ if (mOpenedkListener != null){
 
 ### 事件共存
 
-本案例中，我们需要实现的效果是，用户既能点击切换，也能滑动切换。但是我们知道，如果设置了点击事件，并且 onTouchEvent 返回 return super.onTouchEvent(envent)，点击事件必然在 onTouchEvent 的 ACTION_UP 后执行，由于 onTouchEvent  和 onClickListener 共用同一个状态，将导致冲突。具体表现是：无法将滑块滑到打开位置（一移动，自动弹回来）。
+本案例中，我们需要实现的效果是，用户既能点击切换，也能滑动切换。但是我们知道，如果设置了点击事件，并且 `onTouchEvent` 返回 `return super.onTouchEvent(envent)`，点击事件必然在 `onTouchEvent` 的 `ACTION_UP` 后执行，由于 `onTouchEvent`  和 `onClickListener` 共用同一个状态，将导致冲突。具体表现是：无法将滑块滑到打开位置（一移动，自动弹回来）。
 
-这时，我们就需要增加一个变量 moveX，记录用户从手指按下到抬起滑过的距离，如果 moveX <5，则认为点击，如果 moveX >= 5，则认为滑动。
+这时，我们就需要增加一个变量 moveX，记录用户从手指按下到抬起滑过的距离，如果 `moveX <5`，则认为点击，如果 `moveX >= 5`，则认为滑动。
 
 代码如下：
 
@@ -325,6 +313,8 @@ xmlns:ifavor="http://schemas.android.com/apk/res/res-auto"
 
 
 附录：
+
+本文示例代码：https://github.com/heshiweij/EasySwitchButton
 
 图片资源来源：
 
