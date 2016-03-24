@@ -12,10 +12,15 @@
 
 
 功能点：
+
 1. 不滑出边界，超过一半自动切换（**边界判断**）
+
 2. 可滑动，也可点击（**事件共存**）
+
 3. 提供状态改变监听（**设置回调**）
+
 3. 通过属性设置初始状态、背景图片、滑动按钮（**自定义属性**）
+
 
 ## 自定义View的概述
 Android 在绘制 View 时，其实就像蒙上眼睛在画板上画画，它并不知道应该把 View **画多大**，**画哪儿**，**怎么画**。所以我们必须实现 View 的三个重要方法，以告诉它这些信息。即：**onMeasure**（画多大）,**onLayout**（画哪儿）,**onDraw**（怎么画）。
@@ -102,7 +107,7 @@ private void setStatus(boolean status){
 
 设置 View 的宽高为背景图的宽高
 
-```
+```java
 @Override
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 	// 将 View 的宽高设置为背景图的宽高
@@ -112,7 +117,7 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
 测量完成后，需要实现 onDraw ，在 View 提供的 Canvas 画板绘制两个图片。 其中 `mCurrLeft` 是关键，滑动的原理就是不断改变 `mCurrLeft` 的值，调用 `invalidate()` 引起重绘，不断重新执行 onDraw，从而发生位移的改变。
 
-```
+```java
 @Override
 protected void onDraw(Canvas canvas) {
 	canvas.drawBitmap(mSwitchBackground, 0, 0, mPaint);
@@ -122,7 +127,7 @@ protected void onDraw(Canvas canvas) {
 
 ### 处理 onTouchEvent
 
-```
+```java
 // 开始位置
 int startX;
 	
@@ -181,7 +186,7 @@ public boolean onTouchEvent(MotionEvent event) {
 
 ### 处理状态改变回调
 
-```
+```java
 /** 定义接口 */
 public interface OnOpenedListener {
 	void onChecked(View v, boolean isOpened);
@@ -200,7 +205,7 @@ public void setOnCheckChangedListener(onOpenedListener checkedkListener) {
 
 **onTouchEvent 的 ACTION_UP**
 
-```
+```java
 //处理回调
 if (mOpenedkListener != null){
 	mOpenedkListener.onChecked(this, isOpen);
@@ -216,7 +221,7 @@ if (mOpenedkListener != null){
 代码如下：
 
 在initView() 中添加点击事件
-```
+```java
 setOnClickListener(new OnClickListener() {
 	@Override
 	public void onClick(View v) {
@@ -230,7 +235,7 @@ setOnClickListener(new OnClickListener() {
 });
 ```
 
-```
+```java
 booleal isClick;
 @Override
 public boolean onTouchEvent(MotionEvent event) {
@@ -282,7 +287,7 @@ public boolean onTouchEvent(MotionEvent event) {
 为了方便用户在 XML 中设置属性，需要添加自定义属性
 
 **attr.xml**
-```
+```xml
 <declare-styleable name="SwitchButton">
        <attr name="isOpened" format="boolean" />
        <attr name="slide_button" format="reference" />
@@ -292,13 +297,13 @@ public boolean onTouchEvent(MotionEvent event) {
 
 **命名空间**
 
-```
+```xml
 xmlns:ifavor="http://schemas.android.com/apk/res/res-auto"
 ```
 
 **定义控件**
 
-```
+```xml
  <com.example.customeview.switchbutton.SwitchButton
    android:layout_centerInParent="true"
    android:id="@+id/sb_button"
