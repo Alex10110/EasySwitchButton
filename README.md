@@ -5,7 +5,8 @@
 
 效果图：
 
-![这里写图片描述](http://img.blog.csdn.net/20160324121218248)
+![这里写图片描述](https://github.com/heshiweij/EasySwitchButton/blob/master/sample.png?raw=true)
+
 
 
 功能点：
