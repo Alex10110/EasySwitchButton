@@ -178,6 +178,7 @@ public void setOnCheckChangedListener(OnOpenedListener checkedkListener) {
 			break;
 		}
 		
+		// ±ﬂΩÁ¥¶¿Ì
 		if (mCurrLeft < 0){
 			mCurrLeft = 0;
 		}
